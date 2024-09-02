@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import './SkeletonGame.css';
 import skeletonImage from '../assets/skeleton.png';
 
-const bones = [
+const initialBones = [
   { name: 'Skull', coords: '39,0,61,13' },
   { name: 'Clavicle', coords: '23,17,76,19' },
   { name: 'Scapula', coords: '24,19,35,22,65,19,75,22' }, 
@@ -25,14 +25,16 @@ const bones = [
 ];
 
 function SkeletonGame({ updateScore }) {
+  const [remainingBones, setRemainingBones] = useState([...initialBones]);
   const [currentBone, setCurrentBone] = useState(null);
   const [timeLeft, setTimeLeft] = useState(100);
   const [gameActive, setGameActive] = useState(true);
   const [feedback, setFeedback] = useState({});
   const [score, setScore] = useState(0);
+  const [highScore, setHighScore] = useState(0);
+  const [showCongrats, setShowCongrats] = useState(false);
   const [imageSize, setImageSize] = useState({ width: 0, height: 0 });
   const [imagePosition, setImagePosition] = useState({ left: 0, top: 0 });
-  const [cooldown, setCooldown] = useState(false); // Add cooldown state
   const imageRef = useRef(null);
   const containerRef = useRef(null);
 
@@ -40,6 +42,9 @@ function SkeletonGame({ updateScore }) {
     selectNewBone();
     updateImageMetrics();
     window.addEventListener('resize', updateImageMetrics);
+    // Load high score from localStorage
+    const savedHighScore = localStorage.getItem('skeletonGameHighScore');
+    if (savedHighScore) setHighScore(parseInt(savedHighScore, 10));
     return () => window.removeEventListener('resize', updateImageMetrics);
   }, []);
 
@@ -48,7 +53,7 @@ function SkeletonGame({ updateScore }) {
     if (gameActive && timeLeft > 0) {
       timer = setTimeout(() => setTimeLeft(prev => prev - 1), 100); // Countdown every 100ms
     } else if (timeLeft === 0) {
-      endGame();
+      endGame(false); // End the game when timer reaches 0
     }
     return () => clearTimeout(timer);
   }, [timeLeft, gameActive]);
@@ -69,40 +74,56 @@ function SkeletonGame({ updateScore }) {
   };
 
   const selectNewBone = () => {
-    const randomBone = bones[Math.floor(Math.random() * bones.length)];
-    setCurrentBone(randomBone);
+    if (remainingBones.length === 0) {
+      endGame(true);
+      return;
+    }
+    const randomIndex = Math.floor(Math.random() * remainingBones.length);
+    const selectedBone = remainingBones[randomIndex];
+    setCurrentBone(selectedBone);
     setTimeLeft(100);
-    setCooldown(false); // Reset cooldown when a new bone is selected
     setFeedback({});
+    // Remove the selected bone from remaining bones
+    setRemainingBones(prevBones => prevBones.filter((_, index) => index !== randomIndex));
   };
 
   const handleClick = (boneName) => {
-    if (!gameActive || cooldown) return; // Ignore clicks if in cooldown or game is inactive
+    if (!gameActive) return;
 
     if (boneName === currentBone.name) {
       setScore(prevScore => prevScore + timeLeft);
       setFeedback({ [boneName]: 'correct' });
-      setCooldown(true); // Set cooldown to true to prevent further clicks
       setTimeout(() => {
         selectNewBone();
       }, 1000);
     } else {
-      setTimeLeft(prev => Math.max(prev - 10, 0)); // Penalty for incorrect guess
       setFeedback({ [boneName]: 'incorrect' });
+      // Apply a time penalty for incorrect guess
+      setTimeLeft(prevTime => Math.max(prevTime - 10, 0)); // 1 second penalty, but don't go below 0
       setTimeout(() => {
         setFeedback({});
       }, 1000);
     }
   };
 
-  const endGame = () => {
+  const endGame = (completed = false) => {
     setGameActive(false);
     updateScore(score);
+    if (completed) {
+      setShowCongrats(true);
+      if (score > highScore) {
+        setHighScore(score);
+        localStorage.setItem('skeletonGameHighScore', score.toString());
+      }
+    }
   };
 
   const restartGame = () => {
+    setRemainingBones([...initialBones]);
     setScore(0);
     setGameActive(true);
+    setTimeLeft(100);
+    setShowCongrats(false);
     selectNewBone();
   };
 
@@ -131,7 +152,7 @@ function SkeletonGame({ updateScore }) {
           className="skeleton-image" 
           onLoad={updateImageMetrics}
         />
-        {bones.map((bone) => {
+        {initialBones.map((bone) => {
           const coords = getScaledCoords(bone.coords);
           return coords.length === 4 ? (
             <div
@@ -186,12 +207,27 @@ function SkeletonGame({ updateScore }) {
           <span>Score:</span>
           <strong>{score}</strong>
         </div>
+        <div className="info-item bones-left">
+          <span>Bones left:</span>
+          <strong>{remainingBones.length}</strong>
+        </div>
         {!gameActive && (
           <button onClick={restartGame} className="restart-button">
             Restart Game
           </button>
         )}
       </div>
+      {showCongrats && (
+        <div className="congrats-popup">
+          <h2>Congratulations!</h2>
+          <p>You've successfully identified all the bones!</p>
+          <p>Your score: {score}</p>
+          <p>High score: {highScore}</p>
+          <button onClick={restartGame} className="restart-button">
+            Play Again
+          </button>
+        </div>
+      )}
     </div>
   );
 }
