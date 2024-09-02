@@ -1,0 +1,17 @@
+.score-container {
+    display: flex;
+    align-items: center;
+    
+  }
+  
+  .score-label {
+    color: #333;
+    font-size: 1em;
+    margin-right: 5px;
+  }
+  
+  .score-text {
+    color: #4CAF50;
+    font-size: 1.2em;
+    font-weight: bold;
+  }

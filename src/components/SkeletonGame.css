@@ -1,0 +1,110 @@
+.game-container {
+    display: flex;
+    height: 100vh;
+    width: 100%;
+    overflow: hidden;
+  }
+  
+  .skeleton-container {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .skeleton-image {
+    max-width: 100%;
+    max-height: 90vh;
+    width: auto;
+    height: auto;
+    object-fit: contain;
+  }
+  
+  .game-info {
+    position: fixed; /* Positions it relative to the viewport */
+    z-index: 10000;
+    height: 100vh; /* Ensures it takes up the full height of the viewport */
+    width: 300px;
+    top: 0; /* Positions the element at the top of the viewport */
+    right: 0; /* Aligns the element to the right of the viewport */
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: stretch;
+    border: 10px solid black;
+    
+    box-sizing: border-box; /* Ensures the border is included in the element's total size */
+    background-color: #EEB1D5;
+  }
+  
+  
+  
+  .info-item {
+    margin-bottom: 40px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+  
+  .info-item span {
+    font-size: 1.5em;
+    color: #333;
+    margin-bottom: 10px;
+    font-weight: bold;
+  }
+  
+  .info-item strong {
+    font-size: 2.5em;
+    line-height: 1.2;
+  }
+  
+  .find-bone strong {
+    color: #3498db;
+  }
+  
+  .timer strong {
+    color: #e74c3c;
+  }
+  
+  .score-display strong {
+    color: #27ae60;
+  }
+  
+  .clickable-area {
+    position: absolute;
+    cursor: pointer;
+    background-color: rgba(255, 255, 255, 0.1);
+    transition: all 0.3s ease;
+  }
+  
+  .clickable-area:hover {
+    background-color: rgba(255, 255, 0, 0.3);
+  }
+  
+  .clickable-area.correct {
+    background-color: rgba(0, 255, 0, 0.5);
+  }
+  
+  .clickable-area.incorrect {
+    background-color: rgba(255, 0, 0, 0.5);
+  }
+  
+  .restart-button {
+    margin-top: 30px;
+    padding: 15px 30px;
+    font-size: 1.5em;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    align-self: center;
+  }
+  
+  .restart-button:hover {
+    background-color: #45a049;
+  }
