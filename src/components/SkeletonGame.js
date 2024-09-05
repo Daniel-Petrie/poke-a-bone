@@ -64,13 +64,19 @@ function SkeletonGame({ updateScore }) {
   }, [remainingBones, endGame]);
 
   useEffect(() => {
-    selectNewBone();
-    updateImageMetrics();
-    window.addEventListener('resize', updateImageMetrics);
     const savedHighScore = localStorage.getItem('skeletonGameHighScore');
     if (savedHighScore) setHighScore(parseInt(savedHighScore, 10));
+    
+    updateImageMetrics();
+    window.addEventListener('resize', updateImageMetrics);
     return () => window.removeEventListener('resize', updateImageMetrics);
-  }, [selectNewBone]);
+  }, []);
+
+  useEffect(() => {
+    if (gameActive && !currentBone) {
+      selectNewBone();
+    }
+  }, [gameActive, currentBone, selectNewBone]);
 
   useEffect(() => {
     let timer;
@@ -115,14 +121,15 @@ function SkeletonGame({ updateScore }) {
     }
   };
 
-  const restartGame = () => {
+  const restartGame = useCallback(() => {
     setRemainingBones([...initialBones]);
     setScore(0);
-    setGameActive(true);
-    setTimeLeft(100);
     setShowCongrats(false);
-    selectNewBone();
-  };
+    setTimeLeft(100);
+    setFeedback({});
+    setGameActive(true);
+    setCurrentBone(null);  // Reset currentBone to trigger selectNewBone
+  }, []);
 
   const getScaledCoords = (coords) => {
     const coordsArray = coords.split(',').map(Number);
@@ -206,7 +213,7 @@ function SkeletonGame({ updateScore }) {
           <span>Bones left:</span>
           <strong>{remainingBones.length}</strong>
         </div>
-        {!gameActive && (
+        {!gameActive && !showCongrats && (
           <button onClick={restartGame} className="restart-button">
             Restart Game
           </button>
